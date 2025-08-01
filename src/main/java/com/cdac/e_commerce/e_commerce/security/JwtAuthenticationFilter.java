@@ -30,26 +30,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Skip JWT validation for public endpoints
-        if (path.startsWith("/tricto/auth/") || path.startsWith("/h2-console/") || path.equals("/tricto/message")) {
+        if (path.equals("/tricto/auth/login") || path.equals("/tricto/auth/register") || path.startsWith("/h2-console/") || path.equals("/tricto/message")){
             filterChain.doFilter(request, response);
             return;
         }
         
         String authHeader = request.getHeader("Authorization");
+        
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            String username = tokenProvider.extractUsername(token);
+            
+            try {
+                String username = tokenProvider.extractUsername(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if (tokenProvider.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    if (tokenProvider.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 }
+            } catch (Exception e) {
+                // Log error but don't throw - let the request continue
+                System.err.println("JWT Filter - Error processing token: " + e.getMessage());
             }
         }
         

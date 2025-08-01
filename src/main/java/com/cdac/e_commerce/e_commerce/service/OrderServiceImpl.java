@@ -6,9 +6,12 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cdac.e_commerce.e_commerce.model.Orders;
+import com.cdac.e_commerce.e_commerce.model.Slot;
 import com.cdac.e_commerce.e_commerce.exception.OrderNotFoundException;
+import com.cdac.e_commerce.e_commerce.exception.SlotNotFoundException;
 import com.cdac.e_commerce.e_commerce.repository.OrderRepository;
 
 @Service
@@ -16,10 +19,48 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderRepository orderRepo;
+    
+    @Autowired
+    private SlotService slotService;
 
     @Override
+    @Transactional
     public String addOrder(Orders orderobj) {
+        // Save the order first
         orderRepo.save(orderobj);
+        
+        // Increment slot count if slot_id is provided
+        if (orderobj.getSlot_id() != null) {
+            try {
+                Slot slot = slotService.getSlotById(orderobj.getSlot_id());
+                
+                // Check if slot is not full
+                if (!slot.getIsFull()) {
+                    // Increment current slot size by 1
+                    int newCurrentSize = slot.getCurrentSlotSize() + 1;
+                    slot.setCurrentSlotSize(newCurrentSize);
+                    
+                    // Check if slot is now full
+                    if (newCurrentSize >= slot.getMaxSlotSize()) {
+                        slot.setIsFull(true);
+                    }
+                    
+                    // Save the updated slot
+                    slotService.updateSlot(slot.getSlotId(), slot);
+                    
+                    System.out.println("Slot " + slot.getSlotId() + " count incremented to " + newCurrentSize);
+                } else {
+                    System.out.println("Slot " + slot.getSlotId() + " is already full, cannot increment");
+                }
+            } catch (SlotNotFoundException e) {
+                System.err.println("Slot not found with ID: " + orderobj.getSlot_id());
+                // Continue with order processing even if slot update fails
+            } catch (Exception e) {
+                System.err.println("Error updating slot count: " + e.getMessage());
+                // Continue with order processing even if slot update fails
+            }
+        }
+        
         return "Order Added Successfully";
     }
 

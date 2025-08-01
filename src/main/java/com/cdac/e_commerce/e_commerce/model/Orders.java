@@ -20,6 +20,9 @@ public class Orders {
 	private Integer user_id;
 	@Column
 	private Integer slot_id;
+	@Column(columnDefinition = "TEXT")
+	private String items; // JSON string containing order items
+	
 	public Integer getId() {
 		return orderId;
 	}
@@ -38,21 +41,34 @@ public class Orders {
 	public void setSlot_id(Integer slot_id) {
 		this.slot_id = slot_id;
 	}
+	public String getItems() {
+		return items;
+	}
+	public void setItems(String items) {
+		this.items = items;
+	}
+	
 	public Orders(Integer id, Integer user_id, Integer slot_id) {
 		super();
 		this.orderId = id;
 		this.user_id = user_id;
 		this.slot_id = slot_id;
 	}
+	
+	public Orders(Integer id, Integer user_id, Integer slot_id, String items) {
+		super();
+		this.orderId = id;
+		this.user_id = user_id;
+		this.slot_id = slot_id;
+		this.items = items;
+	}
+	
 	public Orders() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
+	
 	@Override
 	public String toString() {
-		return "order [id=" + orderId + ", user_id=" + user_id + ", slot_id=" + slot_id + "]";
+		return "order [id=" + orderId + ", user_id=" + user_id + ", slot_id=" + slot_id + ", items=" + items + "]";
 	}
-	
-	
-
 }

@@ -3,6 +3,7 @@ package com.cdac.e_commerce.e_commerce.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,6 +28,9 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions().disable()) // required for /h2-console to load
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/tricto/auth/**", "/tricto/message", "/api/message","/h2-console/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/tricto/products/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/tricto/categories/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/tricto/slots/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -42,7 +46,9 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://localhost:4173"); // Vite preview
+        config.addAllowedOrigin("http://localhost:5173"); // Vite dev server
+        config.addAllowedOrigin("http://localhost:3000"); // Common React dev port
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);

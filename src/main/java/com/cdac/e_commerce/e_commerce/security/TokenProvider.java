@@ -35,27 +35,41 @@ public class TokenProvider {
     }
 
     public String extractUsername(String token) {
-        return Jwts.parserBuilder()
-            .setSigningKey(SECRET_KEY)
-            .build()
-            .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
+        try {
+            String username = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+            return username;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isExpired(token);
+        try {
+            String username = extractUsername(token);
+            boolean isValid = username.equals(userDetails.getUsername()) && !isExpired(token);
+            return isValid;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean isExpired(String token) {
-        Date expiration = Jwts.parserBuilder()
-            .setSigningKey(SECRET_KEY)
-            .build()
-            .parseClaimsJws(token)
-            .getBody()
-            .getExpiration();
-        return expiration.before(new Date());
+        try {
+            Date expiration = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+            return expiration.before(new Date());
+        } catch (Exception e) {
+            return true; // Consider expired if we can't parse it
+        }
     }
 }
 
