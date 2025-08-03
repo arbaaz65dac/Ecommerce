@@ -19,7 +19,7 @@ public class ImageDto {
     @Size(max = 255, message = "Image 3 URL cannot exceed 255 characters")
     private String img3;
 
-    @NotNull(message = "Product ID is mandatory for an image")
+    // Product ID is optional for new images (will be set after product creation)
     private Integer productId;
 
 

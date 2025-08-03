@@ -5,6 +5,7 @@ import com.cdac.e_commerce.e_commerce.ModelDto.ProductDto;
 import com.cdac.e_commerce.e_commerce.ModelDto.ImageDto;
 import com.cdac.e_commerce.e_commerce.service.ProductService;
 import com.cdac.e_commerce.e_commerce.service.CategoryService;
+import com.cdac.e_commerce.e_commerce.service.ImageService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 
 @RestController
@@ -22,11 +24,13 @@ public class ProductController {
 
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final ImageService imageService;
 
     @Autowired
-    public ProductController(ProductService productService, CategoryService categoryService) {
+    public ProductController(ProductService productService, CategoryService categoryService, ImageService imageService) {
         this.productService = productService;
         this.categoryService = categoryService;
+        this.imageService = imageService;
     }
 
     // Helper method to convert Entity to DTO using BeanUtils
@@ -39,6 +43,7 @@ public class ProductController {
 
         if (product.getCategoryId() != null) {
             dto.setCategoryId(product.getCategoryId().getCategoryId());
+            dto.setCategoryName(product.getCategoryId().getCategoryName());
         }
 
         if (product.getImages() != null) {
@@ -70,13 +75,41 @@ public class ProductController {
             // The thrown exception will be caught by the GlobalExceptionHandler
             product.setCategoryId(categoryService.getCategoryById(productDto.getCategoryId()));
         }
+        
+        // Initialize images list - they will be handled separately after product is saved
+        product.initializeImages();
+        
         return product;
     }
 
     @PostMapping
     public ResponseEntity<ProductDto> addProduct(@RequestBody @Valid ProductDto productDto) {
         Products product = convertToEntity(productDto);
+        product.initializeImages(); // Ensure images list is initialized
         Products savedProduct = productService.addProduct(product);
+        
+        // Now handle images if they exist
+        if (productDto.getImages() != null && !productDto.getImages().isEmpty()) {
+            // Extract image URLs from the DTO
+            List<String> imageUrls = new ArrayList<>();
+            for (ImageDto imageDto : productDto.getImages()) {
+                if (imageDto.getImg1() != null && !imageDto.getImg1().trim().isEmpty()) {
+                    imageUrls.add(imageDto.getImg1());
+                }
+                if (imageDto.getImg2() != null && !imageDto.getImg2().trim().isEmpty()) {
+                    imageUrls.add(imageDto.getImg2());
+                }
+                if (imageDto.getImg3() != null && !imageDto.getImg3().trim().isEmpty()) {
+                    imageUrls.add(imageDto.getImg3());
+                }
+            }
+            
+            // Create images for the saved product
+            if (!imageUrls.isEmpty()) {
+                imageService.createImagesForProduct(imageUrls, savedProduct);
+            }
+        }
+        
         return new ResponseEntity<>(convertToDto(savedProduct), HttpStatus.CREATED);
     }
 

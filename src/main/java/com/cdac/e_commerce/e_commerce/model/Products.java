@@ -15,105 +15,185 @@ import jakarta.persistence.Table;
 import java.util.ArrayList; 
 import java.util.List; 
 
+/**
+ * Products Entity
+ * 
+ * JPA entity representing products in the e-commerce system.
+ * Each product can have multiple images and belongs to a category.
+ * 
+ * Features:
+ * - Product identification and basic information
+ * - Category relationship (Many-to-One)
+ * - Image collection (One-to-Many)
+ * - Lazy loading for performance
+ * 
+ * Database Table: products
+ */
 @Entity
 @Table(name = "products")
 public class Products {
 
-	 @Id
-	 @GeneratedValue(strategy = GenerationType.IDENTITY)
-	 private Integer productId;
+    /**
+     * Primary key - auto-generated product ID
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer productId;
 
-	 @ManyToOne(fetch = FetchType.LAZY)
-	 @JoinColumn(name = "category_id")
-	 private Category categoryId;
+    /**
+     * Category relationship - Many products can belong to one category
+     * Uses lazy loading for better performance
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category categoryId;
 
-	 @Column
-	 private String productName;
+    /**
+     * Product name
+     */
+    @Column
+    private String productName;
 
-	 @Column
-	 private Double price;
+    /**
+     * Product price
+     */
+    @Column
+    private Double price;
 
-	 @Column
-	 private Integer quantity;
+    /**
+     * Available quantity in stock
+     */
+    @Column
+    private Integer quantity;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    /**
+     * Product images relationship - One product can have many images
+     * Uses lazy loading and cascade operations for image management
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductImage> images = new ArrayList<>(); 
 
-	public Products() {
+    /**
+     * Default constructor required by JPA
+     */
+    public Products() {
+    }
 
-	}
+    /**
+     * Constructor with all required fields
+     * 
+     * @param productId Product ID
+     * @param categoryId Associated category
+     * @param productName Product name
+     * @param price Product price
+     * @param quantity Available quantity
+     */
+    public Products(Integer productId, Category categoryId, String productName, Double price, Integer quantity) {
+        this.productId = productId;
+        this.categoryId = categoryId;
+        this.productName = productName;
+        this.price = price;
+        this.quantity = quantity;
+    }
 
-	public Products(Integer productId, Category categoryId, String productName, Double price, Integer quantity) {
-		this.productId = productId;
-		this.categoryId = categoryId;
-		this.productName = productName;
-		this.price = price;
-		this.quantity = quantity;
-	}
+    // Getter and Setter methods
 
-	public Integer getProductId() {
-		return productId;
-	}
+    public Integer getProductId() {
+        return productId;
+    }
 
-	public void setProductId(Integer productId) {
-		this.productId = productId;
-	}
+    public void setProductId(Integer productId) {
+        this.productId = productId;
+    }
 
-	public Category getCategoryId() {
-		return categoryId;
-	}
+    public Category getCategoryId() {
+        return categoryId;
+    }
 
-	public void setCategoryId(Category categoryId) {
-		this.categoryId = categoryId;
-	}
+    public void setCategoryId(Category categoryId) {
+        this.categoryId = categoryId;
+    }
 
-	public String getProductName() {
-		return productName;
-	}
+    public String getProductName() {
+        return productName;
+    }
 
-	public void setProductName(String productName) {
-		this.productName = productName;
-	}
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 
-	public Double getPrice() {
-		return price;
-	}
+    public Double getPrice() {
+        return price;
+    }
 
-	public void setPrice(Double price) {
-		this.price = price;
-	}
+    public void setPrice(Double price) {
+        this.price = price;
+    }
 
-	public Integer getQuantity() {
-		return quantity;
-	}
+    public Integer getQuantity() {
+        return quantity;
+    }
 
-	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;
-	}
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 
-    // Getter and Setter for the images list
+    /**
+     * Get the list of product images
+     * 
+     * @return List of ProductImage objects
+     */
     public List<ProductImage> getImages() {
         return images;
     }
 
+    /**
+     * Set the list of product images
+     * 
+     * @param images List of ProductImage objects
+     */
     public void setImages(List<ProductImage> images) {
         this.images = images;
     }
 
-    
+    /**
+     * Add an image to the product
+     * 
+     * @param image ProductImage to add
+     */
     public void addImage(ProductImage image) {
         images.add(image);
-        image.setProduct(this); 
+        image.setProduct(this);
     }
 
+    /**
+     * Remove an image from the product
+     * 
+     * @param image ProductImage to remove
+     */
     public void removeImage(ProductImage image) {
         images.remove(image);
-        image.setProduct(null); 
+        image.setProduct(null);
     }
 
-	@Override
-	public String toString() {
-		return "Products [productId=" + productId + ", categoryId=" + categoryId + ", productName=" + productName
-				+ ", price=" + price + ", quantity=" + quantity + "]";
-	}
+    /**
+     * Initialize the images list if it's null
+     * Prevents NullPointerException when accessing images
+     */
+    public void initializeImages() {
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Products{" +
+                "productId=" + productId +
+                ", productName='" + productName + '\'' +
+                ", price=" + price +
+                ", quantity=" + quantity +
+                ", imagesCount=" + (images != null ? images.size() : 0) +
+                '}';
+    }
 }

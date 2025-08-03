@@ -86,4 +86,40 @@ public class SlotService {
     public void deleteSlot(Slot slot) {
         slotRepository.delete(slot);
     }
+
+    // Reset slot method - resets current slot size to 0 and sets isFull to false
+    public Slot resetSlot(Integer id) {
+        Slot existingSlot = slotRepository.findById(id)
+                .orElseThrow(() -> new SlotNotFoundException("Slot with ID " + id + " not found for reset."));
+        
+        existingSlot.setCurrentSlotSize(0);
+        existingSlot.setIsFull(false);
+        
+        return slotRepository.save(existingSlot);
+    }
+
+    // Get slots that are near full (within 5 items of max capacity)
+    public List<Slot> getNearFullSlots() {
+        List<Slot> allSlots = slotRepository.findAll();
+        return allSlots.stream()
+                .filter(slot -> !slot.getIsFull() && 
+                        slot.getCurrentSlotSize() >= (slot.getMaxSlotSize() - 5))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // Reset all pending slots (slots that are not full but have current slot size > 0)
+    public List<Slot> resetAllPendingSlots() {
+        List<Slot> allSlots = slotRepository.findAll();
+        List<Slot> fullSlots = allSlots.stream()
+                .filter(slot -> slot.getIsFull())
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Reset all full slots
+        for (Slot slot : fullSlots) {
+            slot.setCurrentSlotSize(0);
+            slot.setIsFull(false);
+        }
+        
+        return slotRepository.saveAll(fullSlots);
+    }
 }

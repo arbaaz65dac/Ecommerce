@@ -14,7 +14,30 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+/**
+ * Slot Controller
+ * 
+ * This controller handles all slot-related HTTP requests for the e-commerce application.
+ * Slots represent discount tiers for products with limited capacity.
+ * 
+ * API Endpoints:
+ * - POST /tricto/slots - Create a new slot
+ * - GET /tricto/slots - Get all slots
+ * - GET /tricto/slots/{id} - Get slot by ID
+ * - GET /tricto/slots/product/{productId} - Get slots for a specific product
+ * - PUT /tricto/slots/{id} - Update a slot
+ * - DELETE /tricto/slots/{id} - Delete a slot
+ * - POST /tricto/slots/{id}/reset - Reset a slot to empty state
+ * - POST /tricto/slots/reset-all-pending - Reset all pending slots
+ * - GET /tricto/slots/near-full - Get slots that are nearly full
+ * 
+ * Features:
+ * - CRUD operations for slots
+ * - Product-slot relationship management
+ * - Slot capacity tracking
+ * - Discount percentage management
+ * - Bulk operations for slot management
+ */
 @RestController
 @RequestMapping("/tricto/slots")
 public class SlotController {
@@ -28,13 +51,18 @@ public class SlotController {
         this.productService = productService;
     }
 
-    // Helper method to convert Entity to DTO using BeanUtils
+    /**
+     * Converts a Slot entity to SlotDto for API responses
+     * 
+     * @param slot Slot entity to convert
+     * @return SlotDto object
+     */
     private SlotDto convertToDto(Slot slot) {
         if (slot == null) {
             return null;
         }
         SlotDto dto = new SlotDto();
-        BeanUtils.copyProperties(slot, dto); // Copies slotId, maxSlotSize, isFull, currentSlotSize, discountPercentage
+        BeanUtils.copyProperties(slot, dto); // Copy basic properties
 
         // Handle productId separately as it's an object in Slot but ID in DTO
         if (slot.getProduct() != null) {
@@ -43,35 +71,46 @@ public class SlotController {
         return dto;
     }
 
-    // Helper method to convert DTO to Entity using BeanUtils
+    /**
+     * Converts a SlotDto to Slot entity for database operations
+     * 
+     * @param slotDto SlotDto to convert
+     * @return Slot entity
+     */
     private Slot convertToEntity(SlotDto slotDto) {
         if (slotDto == null) {
             return null;
         }
         Slot slot = new Slot();
-        BeanUtils.copyProperties(slotDto, slot); // Copies maxSlotSize, isFull, currentSlotSize, discountPercentage
+        BeanUtils.copyProperties(slotDto, slot); // Copy basic properties
 
         // Handle productId: fetch Products entity using the ID from DTO
-        // This call will either return a Products object or throw ProductNotFoundException
-        // The thrown exception will be caught by the GlobalExceptionHandler
         if (slotDto.getProductId() != null) {
             slot.setProduct(productService.getProductById(slotDto.getProductId()));
         } else {
-            // If productId is explicitly null in the DTO, set the product association to null
             slot.setProduct(null);
         }
         return slot;
     }
 
-
+    /**
+     * Creates a new slot for a product
+     * 
+     * @param slotDto Slot data to create
+     * @return ResponseEntity with created slot
+     */
     @PostMapping
     public ResponseEntity<SlotDto> addSlot(@RequestBody @Valid SlotDto slotDto) {
-        Slot slot = convertToEntity(slotDto); // This handles product existence via productService call
+        Slot slot = convertToEntity(slotDto);
         Slot savedSlot = slotService.addSlot(slot);
         return new ResponseEntity<>(convertToDto(savedSlot), HttpStatus.CREATED);
     }
 
-
+    /**
+     * Retrieves all slots in the system
+     * 
+     * @return ResponseEntity with list of all slots
+     */
     @GetMapping
     public ResponseEntity<List<SlotDto>> getAllSlots() {
         List<Slot> slots = slotService.getAllSlots();
@@ -81,20 +120,26 @@ public class SlotController {
         return new ResponseEntity<>(slotDtos, HttpStatus.OK);
     }
 
-
+    /**
+     * Retrieves a specific slot by its ID
+     * 
+     * @param id Slot ID
+     * @return ResponseEntity with slot data
+     */
     @GetMapping("/{id}")
     public ResponseEntity<SlotDto> getSlotById(@PathVariable Integer id) {
-        // Service layer now throws SlotNotFoundException if not found,
-        // which is handled by GlobalExceptionHandler.
         Slot slot = slotService.getSlotById(id);
         return new ResponseEntity<>(convertToDto(slot), HttpStatus.OK);
     }
 
-
+    /**
+     * Retrieves all slots for a specific product
+     * 
+     * @param productId Product ID
+     * @return ResponseEntity with list of slots for the product
+     */
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<SlotDto>> getSlotsByProductId(@PathVariable Integer productId) {
-        // The service layer's getSlotsByProductId *can* throw ProductNotFoundException
-        // if the product itself doesn't exist, due to the call to productService.getProductById(productId)
         List<Slot> slots = slotService.getSlotsByProductId(productId);
         List<SlotDto> slotDtos = slots.stream()
                 .map(this::convertToDto)
@@ -102,21 +147,69 @@ public class SlotController {
         return new ResponseEntity<>(slotDtos, HttpStatus.OK);
     }
 
-
+    /**
+     * Updates an existing slot
+     * 
+     * @param id Slot ID to update
+     * @param slotDto Updated slot data
+     * @return ResponseEntity with updated slot
+     */
     @PutMapping("/{id}")
     public ResponseEntity<SlotDto> updateSlot(@PathVariable Integer id, @RequestBody @Valid SlotDto slotDto) {
-        Slot updatedSlotEntity = convertToEntity(slotDto); // This handles product existence
-        // The service layer will find the slot by 'id' and update its details
+        Slot updatedSlotEntity = convertToEntity(slotDto);
         Slot result = slotService.updateSlot(id, updatedSlotEntity);
-        // If result is null/not found, an exception is thrown from service and handled globally
         return new ResponseEntity<>(convertToDto(result), HttpStatus.OK);
     }
 
-
+    /**
+     * Deletes a slot by its ID
+     * 
+     * @param id Slot ID to delete
+     * @return ResponseEntity with no content
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSlot(@PathVariable Integer id) {
-        // Service layer will throw SlotNotFoundException if not found
         slotService.deleteSlot(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content for successful deletion
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Resets a specific slot to empty state
+     * 
+     * @param id Slot ID to reset
+     * @return ResponseEntity with reset slot
+     */
+    @PostMapping("/{id}/reset")
+    public ResponseEntity<SlotDto> resetSlot(@PathVariable Integer id) {
+        Slot resetSlot = slotService.resetSlot(id);
+        return new ResponseEntity<>(convertToDto(resetSlot), HttpStatus.OK);
+    }
+
+    /**
+     * Resets all pending slots to empty state
+     * 
+     * @return ResponseEntity with list of reset slots
+     */
+    @PostMapping("/reset-all-pending")
+    public ResponseEntity<List<SlotDto>> resetAllPendingSlots() {
+        List<Slot> resetSlots = slotService.resetAllPendingSlots();
+        List<SlotDto> slotDtos = resetSlots.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(slotDtos, HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves slots that are nearly full (for monitoring purposes)
+     * 
+     * @return ResponseEntity with list of near-full slots
+     */
+    @GetMapping("/near-full")
+    public ResponseEntity<List<SlotDto>> getNearFullSlots() {
+        List<Slot> nearFullSlots = slotService.getNearFullSlots();
+        List<SlotDto> slotDtos = nearFullSlots.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(slotDtos, HttpStatus.OK);
     }
 }

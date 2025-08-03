@@ -18,6 +18,8 @@ public class ProductDto {
     @Min(value = 1, message = "Category ID must be a positive integer")
     private Integer categoryId;
 
+    private String categoryName; // Added for frontend display
+
     @NotBlank(message = "Product name is mandatory")
     @Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")
     private String productName;
@@ -37,9 +39,10 @@ public class ProductDto {
         this.images = new ArrayList<>();
     }
 
-    public ProductDto(Integer productId, Integer categoryId, String productName, Double price, Integer quantity, List<ImageDto> images) {
+    public ProductDto(Integer productId, Integer categoryId, String categoryName, String productName, Double price, Integer quantity, List<ImageDto> images) {
         this.productId = productId;
         this.categoryId = categoryId;
+        this.categoryName = categoryName;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
@@ -61,6 +64,14 @@ public class ProductDto {
 
     public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 
     public String getProductName() {
@@ -97,7 +108,7 @@ public class ProductDto {
 
     @Override
     public String toString() {
-        return "ProductDto [productId=" + productId + ", categoryId=" + categoryId + ", productName=" + productName
+        return "ProductDto [productId=" + productId + ", categoryId=" + categoryId + ", categoryName=" + categoryName + ", productName=" + productName
                 + ", price=" + price + ", quantity=" + quantity + ", images=" + images.size() + " images]";
     }
 }
