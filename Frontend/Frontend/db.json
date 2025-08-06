@@ -1,0 +1,85 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "imgURL": "shoe4.svg",
+      "name": "Nike Air Jordan-01",
+      "price": 200,
+      "category": "shoes",
+      "description": "Classic Air Jordan sneakers with premium comfort.",
+      "images": ["shoe4.svg"]
+    },
+    {
+      "id": 2,
+      "imgURL": "shoe5.svg",
+      "name": "Nike Air Jordan-10",
+      "price": 210,
+      "category": "shoes",
+      "description": "High-performance basketball shoes for all players.",
+      "images": ["shoe5.svg"]
+    },
+    {
+      "id": 3,
+      "imgURL": "shoe6.svg",
+      "name": "Nike Air Max 90",
+      "price": 180,
+      "category": "shoes",
+      "description": "Iconic Air Max cushioning for all-day comfort.",
+      "images": ["shoe6.svg"]
+    },
+    {
+      "id": 4,
+      "imgURL": "shoe7.svg",
+      "name": "Nike Revolution 5",
+      "price": 120,
+      "category": "shoes",
+      "description": "Lightweight running shoes for everyday use.",
+      "images": ["shoe7.svg"]
+    },
+    {
+      "id": 5,
+      "imgURL": "https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/6e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-t-shirt.jpg",
+      "name": "Nike Sportswear T-Shirt",
+      "price": 35,
+      "category": "apparel",
+      "description": "Soft cotton t-shirt with Nike logo.",
+      "images": ["https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/6e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-t-shirt.jpg"]
+    },
+    {
+      "id": 6,
+      "imgURL": "https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/7e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-hoodie.jpg",
+      "name": "Nike Sportswear Hoodie",
+      "price": 60,
+      "category": "apparel",
+      "description": "Warm fleece hoodie for everyday comfort.",
+      "images": ["https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/7e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-hoodie.jpg"]
+    },
+    {
+      "id": 7,
+      "imgURL": "https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/8e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-cap.jpg",
+      "name": "Nike Sportswear Cap",
+      "price": 25,
+      "category": "accessories",
+      "description": "Adjustable cap with embroidered Swoosh.",
+      "images": ["https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/8e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-cap.jpg"]
+    },
+    {
+      "id": 8,
+      "imgURL": "https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/9e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-bag.jpg",
+      "name": "Nike Training Bag",
+      "price": 45,
+      "category": "equipment",
+      "description": "Spacious training bag for all your gear.",
+      "images": ["https://static.nike.com/a/images/t_PDP_864_v1/f_auto,q_auto:eco/9e1e2e2e-1e2e-4e2e-8e2e-2e2e2e2e2e2e/sportswear-bag.jpg"]
+    }
+  ],
+  "cart": [],
+  "users": [
+    {
+      "id": 1,
+      "email": "test@example.com",
+      "password": "password123",
+      "name": "Test User"
+    }
+  ]
+} 

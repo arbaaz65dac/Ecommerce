@@ -59,13 +59,14 @@ public class AuthService {
             throw new BadCredentialsException("Invalid credentials: password does not match.");
         }
 
-        // Generate and return JWT token using the TokenProvider
+        // Generate and return JWT token using the TokenProvider with user ID
         return tokenProvider.generateToken(
             new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(), // Provide the hashed password to Spring Security's UserDetails
                 List.of(new SimpleGrantedAuthority(user.getRole().name())) // Convert user's role to SimpleGrantedAuthority
-            )
+            ),
+            user.getId() // Pass the user ID to include in the token
         );
     }
 }

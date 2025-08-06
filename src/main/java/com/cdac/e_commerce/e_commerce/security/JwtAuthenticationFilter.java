@@ -76,12 +76,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     // Validate token against user details
                     if (tokenProvider.validateToken(token, userDetails)) {
+                        // Extract user ID from JWT token
+                        Integer userId = tokenProvider.extractUserId(token);
+                        
                         // Create authentication token with user details and authorities
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                         
                         // Set additional authentication details
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        
+                        // Store user ID in request attributes for easy access in controllers
+                        request.setAttribute("userId", userId);
 
                         // Set authentication in Spring Security context
                         SecurityContextHolder.getContext().setAuthentication(auth);

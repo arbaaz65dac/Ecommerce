@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,8 +20,11 @@ import com.cdac.e_commerce.e_commerce.model.Orders;
 import com.cdac.e_commerce.e_commerce.ModelDto.OrderDto;
 import com.cdac.e_commerce.e_commerce.ModelDto.OrderItemDto;
 import com.cdac.e_commerce.e_commerce.service.OrderService;
+import com.cdac.e_commerce.e_commerce.security.TokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/tricto/orders")
@@ -30,6 +35,9 @@ public class OrderController {
 	
 	@Autowired
 	ObjectMapper objectMapper;
+	
+	@Autowired
+	TokenProvider tokenProvider;
 	
 	@PostMapping("addOrder")
 	public String addOrder(@RequestBody OrderDto orderDTO) {
@@ -52,27 +60,67 @@ public class OrderController {
 	}
 	
 	@GetMapping("getAllOrder")
-	public List<OrderDto> getAllOrder(){
-		List<Orders> orders = orderservice.getAllOrder();
-		return orders.stream().map(order -> {
-			OrderDto dto = new OrderDto();
-			dto.setUser_id(order.getUser_id());
-			dto.setSlot_id(order.getSlot_id());
-			
-			// Convert JSON string back to items
-			if (order.getItems() != null && !order.getItems().isEmpty()) {
+	public List<OrderDto> getAllOrder(HttpServletRequest request){
+		// Get current user ID from request attributes (set by JWT filter)
+		Integer currentUserId = (Integer) request.getAttribute("userId");
+		
+		if (currentUserId == null) {
+			// Fallback: try to get from authentication context
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication != null && authentication.isAuthenticated()) {
 				try {
-					List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
-						objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
-					dto.setItems(items);
-				} catch (JsonProcessingException e) {
-					// Handle JSON processing error
-					System.err.println("Error converting JSON to items: " + e.getMessage());
+					// Extract user ID from JWT token
+					String authHeader = request.getHeader("Authorization");
+					if (authHeader != null && authHeader.startsWith("Bearer ")) {
+						String token = authHeader.substring(7);
+						currentUserId = tokenProvider.extractUserId(token);
+					}
+				} catch (Exception e) {
+					System.err.println("Error extracting user ID from token: " + e.getMessage());
 				}
 			}
+		}
+		
+		if (currentUserId == null) {
+			// Return empty list if no user ID found
+			return List.of();
+		}
+		
+		try {
+			// Get all orders and filter by current user
+			List<Orders> allOrders = orderservice.getAllOrder();
 			
-			return dto;
-		}).collect(Collectors.toList());
+			// Create a final variable for use in lambda
+			final Integer finalUserId = currentUserId;
+			
+			// Filter orders by current user
+			List<Orders> userOrders = allOrders.stream()
+				.filter(order -> order.getUser_id().equals(finalUserId))
+				.collect(Collectors.toList());
+			
+			return userOrders.stream().map(order -> {
+				OrderDto dto = new OrderDto();
+				dto.setUser_id(order.getUser_id());
+				dto.setSlot_id(order.getSlot_id());
+				
+				// Convert JSON string back to items
+				if (order.getItems() != null && !order.getItems().isEmpty()) {
+					try {
+						List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
+							objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
+						dto.setItems(items);
+					} catch (JsonProcessingException e) {
+						// Handle JSON processing error
+						System.err.println("Error converting JSON to items: " + e.getMessage());
+					}
+				}
+				
+				return dto;
+			}).collect(Collectors.toList());
+		} catch (Exception e) {
+			System.err.println("Error fetching user orders: " + e.getMessage());
+			return List.of();
+		}
 	}
 	
 	@DeleteMapping("deleteOrderById/{id}")

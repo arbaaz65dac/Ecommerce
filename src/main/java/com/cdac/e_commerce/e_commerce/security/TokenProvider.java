@@ -27,7 +27,7 @@ import io.jsonwebtoken.security.Keys;
  * - Uses HMAC-SHA256 algorithm for token signing
  * - 256-bit secret key for secure token generation
  * - 1-hour token expiration for security
- * - Includes user roles in token claims
+ * - Includes user roles and user ID in token claims
  */
 @Component
 public class TokenProvider {
@@ -42,11 +42,13 @@ public class TokenProvider {
      * Generates a JWT token for a user
      * 
      * @param userDetails User details containing username and authorities
+     * @param userId User ID to include in token
      * @return JWT token string
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, Integer userId) {
         return Jwts.builder()
             .setSubject(userDetails.getUsername()) // Set username as subject
+            .claim("userId", userId) // Include user ID in claims
             .claim("roles", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList())) // Include user roles
@@ -72,6 +74,27 @@ public class TokenProvider {
                 .getBody()
                 .getSubject();
             return username;
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Extracts the user ID from a JWT token
+     * 
+     * @param token JWT token string
+     * @return User ID extracted from token
+     * @throws Exception if token is invalid or expired
+     */
+    public Integer extractUserId(String token) {
+        try {
+            Integer userId = Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId", Integer.class);
+            return userId;
         } catch (Exception e) {
             throw e;
         }
