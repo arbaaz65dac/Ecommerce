@@ -79,6 +79,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         // Extract user ID from JWT token
                         Integer userId = tokenProvider.extractUserId(token);
                         
+                        // Extract user role from JWT token
+                        String userRole = null;
+                        try {
+                            // Get the first authority (role) from user details
+                            if (userDetails.getAuthorities() != null && !userDetails.getAuthorities().isEmpty()) {
+                                userRole = userDetails.getAuthorities().iterator().next().getAuthority();
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error extracting user role: " + e.getMessage());
+                        }
+                        
                         // Create authentication token with user details and authorities
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -86,8 +97,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         // Set additional authentication details
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         
-                        // Store user ID in request attributes for easy access in controllers
+                        // Store user ID and role in request attributes for easy access in controllers
                         request.setAttribute("userId", userId);
+                        request.setAttribute("userRole", userRole);
 
                         // Set authentication in Spring Security context
                         SecurityContextHolder.getContext().setAuthentication(auth);

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cdac.e_commerce.e_commerce.model.Orders;
 import com.cdac.e_commerce.e_commerce.ModelDto.OrderDto;
 import com.cdac.e_commerce.e_commerce.ModelDto.OrderItemDto;
+import com.cdac.e_commerce.e_commerce.ModelDto.UserDto;
+import com.cdac.e_commerce.e_commerce.model.User;
+import com.cdac.e_commerce.e_commerce.repository.UserRepository;
 import com.cdac.e_commerce.e_commerce.service.OrderService;
 import com.cdac.e_commerce.e_commerce.security.TokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,6 +42,9 @@ public class OrderController {
 	
 	@Autowired
 	TokenProvider tokenProvider;
+	
+	@Autowired
+	UserRepository userRepository;
 	
 	@PostMapping("addOrder")
 	public String addOrder(@RequestBody OrderDto orderDTO) {
@@ -63,6 +70,7 @@ public class OrderController {
 	public List<OrderDto> getAllOrder(HttpServletRequest request){
 		// Get current user ID from request attributes (set by JWT filter)
 		Integer currentUserId = (Integer) request.getAttribute("userId");
+		String userRole = (String) request.getAttribute("userRole");
 		
 		if (currentUserId == null) {
 			// Fallback: try to get from authentication context
@@ -81,14 +89,38 @@ public class OrderController {
 			}
 		}
 		
-		if (currentUserId == null) {
-			// Return empty list if no user ID found
-			return List.of();
-		}
-		
 		try {
-			// Get all orders and filter by current user
+			// Get all orders
 			List<Orders> allOrders = orderservice.getAllOrder();
+			
+			// If user is admin, return all orders
+			if ("ADMIN".equals(userRole)) {
+				return allOrders.stream().map(order -> {
+					OrderDto dto = new OrderDto();
+					dto.setUser_id(order.getUser_id());
+					dto.setSlot_id(order.getSlot_id());
+					
+					// Convert JSON string back to items
+					if (order.getItems() != null && !order.getItems().isEmpty()) {
+						try {
+							List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
+								objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
+							dto.setItems(items);
+						} catch (JsonProcessingException e) {
+							// Handle JSON processing error
+							System.err.println("Error converting JSON to items: " + e.getMessage());
+						}
+					}
+					
+					return dto;
+				}).collect(Collectors.toList());
+			}
+			
+			// For regular users, filter by current user
+			if (currentUserId == null) {
+				// Return empty list if no user ID found
+				return List.of();
+			}
 			
 			// Create a final variable for use in lambda
 			final Integer finalUserId = currentUserId;
@@ -118,7 +150,63 @@ public class OrderController {
 				return dto;
 			}).collect(Collectors.toList());
 		} catch (Exception e) {
-			System.err.println("Error fetching user orders: " + e.getMessage());
+			System.err.println("Error fetching orders: " + e.getMessage());
+			return List.of();
+		}
+	}
+	
+	// New endpoint specifically for admin to get all orders
+	@GetMapping("getAllOrdersForAdmin")
+	public List<OrderDto> getAllOrdersForAdmin(HttpServletRequest request){
+		try {
+			// Get all orders without filtering
+			List<Orders> allOrders = orderservice.getAllOrder();
+			
+			return allOrders.stream().map(order -> {
+				OrderDto dto = new OrderDto();
+				dto.setOrderId(order.getId());
+				dto.setUser_id(order.getUser_id());
+				dto.setSlot_id(order.getSlot_id());
+				dto.setStatus("Pending"); // Default status since Orders model doesn't have status field
+				dto.setOrderDate(new java.util.Date()); // Default to current date since Orders model doesn't have orderDate field
+				
+				// Fetch user information
+				try {
+					User user = userRepository.findById(order.getUser_id()).orElse(null);
+					if (user != null) {
+						UserDto userDto = new UserDto();
+						userDto.setId(user.getId());
+						userDto.setName(user.getName());
+						userDto.setEmail(user.getEmail());
+						userDto.setRole(user.getRole().name());
+						dto.setUser(userDto);
+					}
+				} catch (Exception e) {
+					System.err.println("Error fetching user for order " + order.getId() + ": " + e.getMessage());
+				}
+				
+				// Convert JSON string back to items
+				if (order.getItems() != null && !order.getItems().isEmpty()) {
+					try {
+						List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
+							objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
+						dto.setItems(items);
+						
+						// Calculate total amount from items
+						double totalAmount = items.stream()
+							.mapToDouble(item -> (item.getPrice() != null ? item.getPrice() : 0) * (item.getQuantity() != null ? item.getQuantity() : 0))
+							.sum();
+						dto.setTotalAmount(totalAmount);
+					} catch (JsonProcessingException e) {
+						// Handle JSON processing error
+						System.err.println("Error converting JSON to items: " + e.getMessage());
+					}
+				}
+				
+				return dto;
+			}).collect(Collectors.toList());
+		} catch (Exception e) {
+			System.err.println("Error fetching all orders for admin: " + e.getMessage());
 			return List.of();
 		}
 	}
