@@ -8,10 +8,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.dao.DataIntegrityViolationException; // For database constraint violations
 import org.springframework.security.authentication.BadCredentialsException; // For login failures
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.FieldError;
 
 import jakarta.servlet.http.HttpServletRequest; // For direct HttpServletRequest access
 
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 // @RestControllerAdvice combines @ControllerAdvice and @ResponseBody
 @ControllerAdvice
@@ -72,6 +76,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password.", request.getRequestURI());
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED); // 401 Unauthorized
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     // If you created a custom InvalidCredentialsException

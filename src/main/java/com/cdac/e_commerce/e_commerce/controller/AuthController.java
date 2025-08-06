@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cdac.e_commerce.e_commerce.ModelDto.ForgotPasswordRequest;
 import com.cdac.e_commerce.e_commerce.ModelDto.LoginRequest;
 import com.cdac.e_commerce.e_commerce.ModelDto.LoginResponse;
 import com.cdac.e_commerce.e_commerce.ModelDto.RegisterRequest;
+import com.cdac.e_commerce.e_commerce.ModelDto.ResetPasswordRequest;
 import com.cdac.e_commerce.e_commerce.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -43,6 +45,18 @@ public class AuthController {
         // that will be caught by the GlobalExceptionHandler if login fails.
         String jwt = authService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(new LoginResponse(jwt));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getResetToken(), request.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 
     // to test token is working correctly

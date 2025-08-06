@@ -1,6 +1,9 @@
 package com.cdac.e_commerce.e_commerce.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,12 +24,14 @@ public class AuthService {
     private final UserRepository userRepository; // Use final with constructor injection
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final EmailService emailService;
 
     @Autowired // Constructor injection is preferred for mandatory dependencies
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.emailService = emailService;
     }
 
     public void register(String name, String email, String password) {
@@ -68,5 +73,46 @@ public class AuthService {
             ),
             user.getId() // Pass the user ID to include in the token
         );
+    }
+
+    public void forgotPassword(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            
+            // Generate reset token
+            String resetToken = UUID.randomUUID().toString();
+            LocalDateTime expiryTime = LocalDateTime.now().plusHours(1); // Token expires in 1 hour
+            
+            // Save reset token to user
+            user.setResetToken(resetToken);
+            user.setResetTokenExpiry(expiryTime);
+            userRepository.save(user);
+            
+            // Send email with reset link
+            emailService.sendPasswordResetEmail(email, resetToken);
+        }
+        // Don't reveal if email exists or not for security reasons
+    }
+
+    public void resetPassword(String resetToken, String newPassword) {
+        Optional<User> userOptional = userRepository.findByResetToken(resetToken);
+        
+        if (userOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid reset token");
+        }
+        
+        User user = userOptional.get();
+        
+        // Check if token is expired
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset token has expired");
+        }
+        
+        // Update password and clear reset token
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
     }
 }

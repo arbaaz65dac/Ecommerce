@@ -12,5 +12,6 @@ import com.cdac.e_commerce.e_commerce.model.User;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
 	Optional<User> findByEmail(String email);
+	Optional<User> findByResetToken(String resetToken);
 }
 

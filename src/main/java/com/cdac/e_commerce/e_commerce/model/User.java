@@ -1,6 +1,7 @@
 package com.cdac.e_commerce.e_commerce.model;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -49,6 +50,13 @@ public class User implements UserDetails, Serializable {
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Role role;
+
+	// Password reset fields
+	@Column(name = "reset_token")
+	private String resetToken;
+
+	@Column(name = "reset_token_expiry")
+	private LocalDateTime resetTokenExpiry;
 
 	public User() {
 	}
@@ -100,6 +108,22 @@ public class User implements UserDetails, Serializable {
 
 	public void setRole(Role role) {
 		this.role = role;
+	}
+
+	public String getResetToken() {
+		return resetToken;
+	}
+
+	public void setResetToken(String resetToken) {
+		this.resetToken = resetToken;
+	}
+
+	public LocalDateTime getResetTokenExpiry() {
+		return resetTokenExpiry;
+	}
+
+	public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) {
+		this.resetTokenExpiry = resetTokenExpiry;
 	}
 
 	@Override
