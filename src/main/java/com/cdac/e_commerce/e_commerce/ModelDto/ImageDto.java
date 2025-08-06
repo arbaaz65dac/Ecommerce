@@ -1,7 +1,6 @@
 package com.cdac.e_commerce.e_commerce.ModelDto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class ImageDto {
