@@ -93,7 +93,7 @@ public class Slot {
         this.discountPercentage = discountPercentage;
     }
 
-    // Getter and Setter methods
+    
 
     public Integer getSlotId() {
         return slotId;

@@ -21,7 +21,7 @@ private Integer productId;
 	
 	public CartDto() {
 		super();
-		// TODO Auto-generated constructor stub
+	
 	}
 
 	public CartDto(Integer user_id, Integer quantity, Integer productId) {

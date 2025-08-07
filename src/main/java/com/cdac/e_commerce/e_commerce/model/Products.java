@@ -96,7 +96,7 @@ public class Products {
         this.quantity = quantity;
     }
 
-    // Getter and Setter methods
+    
 
     public Integer getProductId() {
         return productId;

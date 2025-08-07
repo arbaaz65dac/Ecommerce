@@ -77,7 +77,7 @@ public class Category {
 			this.categoryUrl = categoryUrl;
 		}
 
-        // Getter and Setter for the products list
+        
         public List<Products> getProducts() {
             return products;
         }

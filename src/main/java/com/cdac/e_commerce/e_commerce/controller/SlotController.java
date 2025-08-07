@@ -62,9 +62,8 @@ public class SlotController {
             return null;
         }
         SlotDto dto = new SlotDto();
-        BeanUtils.copyProperties(slot, dto); // Copy basic properties
-
-        // Handle productId separately as it's an object in Slot but ID in DTO
+        		BeanUtils.copyProperties(slot, dto);
+		
         if (slot.getProduct() != null) {
             dto.setProductId(slot.getProduct().getProductId());
         }
@@ -82,9 +81,8 @@ public class SlotController {
             return null;
         }
         Slot slot = new Slot();
-        BeanUtils.copyProperties(slotDto, slot); // Copy basic properties
-
-        // Handle productId: fetch Products entity using the ID from DTO
+        		BeanUtils.copyProperties(slotDto, slot);
+		
         if (slotDto.getProductId() != null) {
             slot.setProduct(productService.getProductById(slotDto.getProductId()));
         } else {

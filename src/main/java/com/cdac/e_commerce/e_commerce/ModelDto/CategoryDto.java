@@ -19,7 +19,7 @@ public class CategoryDto {
  @Size(max = 255, message = "Category URL cannot exceed 255 characters")
  private String categoryUrl;
 
- // Constructors
+ 
  public CategoryDto() {
  }
 
@@ -30,7 +30,7 @@ public class CategoryDto {
      this.categoryUrl = categoryUrl;
  }
 
- // Getters and Setters
+ 
  public Integer getCategoryId() {
      return categoryId;
  }

@@ -23,7 +23,7 @@ public class Address {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Constructors
+    
     public Address() {}
 
     public Address(String addressLine, String pincode, User user) {
@@ -32,7 +32,7 @@ public class Address {
         this.user = user;
     }
 
-    // Getters & Setters
+    
     public Integer getId() {
         return id;
     }

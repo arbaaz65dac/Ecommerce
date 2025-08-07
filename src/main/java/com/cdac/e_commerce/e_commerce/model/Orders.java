@@ -21,7 +21,7 @@ public class Orders {
 	@Column
 	private Integer slot_id;
 	@Column(columnDefinition = "TEXT")
-	private String items; // JSON string containing order items
+	private String items;
 	
 	public Integer getId() {
 		return orderId;

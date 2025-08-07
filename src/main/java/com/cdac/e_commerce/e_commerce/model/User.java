@@ -51,7 +51,7 @@ public class User implements UserDetails, Serializable {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	// Password reset fields
+
 	@Column(name = "reset_token")
 	private String resetToken;
 

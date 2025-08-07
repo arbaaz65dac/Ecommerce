@@ -14,6 +14,12 @@ import com.cdac.e_commerce.e_commerce.model.Slot;
 import com.cdac.e_commerce.e_commerce.exception.OrderNotFoundException;
 import com.cdac.e_commerce.e_commerce.exception.SlotNotFoundException;
 import com.cdac.e_commerce.e_commerce.repository.OrderRepository;
+import com.cdac.e_commerce.e_commerce.service.ProductService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -22,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepo;
     
     @Autowired
-    private ProductService ps;
+    private ProductService productService;
     
     @Autowired
     private SlotService slotService;
@@ -30,33 +36,49 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public String addOrder(Orders orderobj) {
-        // Save the order first
         orderRepo.save(orderobj);
         
-       
-        // Increment slot count if slot_id is provided
+        if (orderobj.getItems() != null && !orderobj.getItems().isEmpty()) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                List<Map<String, Object>> orderItems = objectMapper.readValue(
+                    orderobj.getItems(), 
+                    new TypeReference<List<Map<String, Object>>>() {}
+                );
+                
+                for (Map<String, Object> item : orderItems) {
+                    Integer productId = (Integer) item.get("productId");
+                    Integer quantity = (Integer) item.get("quantity");
+                    
+                    if (productId != null && quantity != null) {
+                        try {
+                            Products product = productService.getProductById(productId);
+                            product.setQuantity(product.getQuantity() - quantity);
+                            productService.updateProduct(product.getProductId(), product);
+                            
+                            System.out.println("Decreased " + quantity + " units of product " + productId);
+                        } catch (Exception e) {
+                            System.err.println("Error updating product " + productId + ": " + e.getMessage());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error parsing order items: " + e.getMessage());
+            }
+        }
+        
         if (orderobj.getSlot_id() != null) {
             try {
                 Slot slot = slotService.getSlotById(orderobj.getSlot_id());
                 
-                // Check if slot is not full
                 if (!slot.getIsFull()) {
-                    // Increment current slot size by 1
-                	
-                	//edited by shivansh*******
-                	Products temp=	slot.getProduct();
-                	temp.setQuantity(temp.getQuantity()-1);
-                	//*****
-                	
                     int newCurrentSize = slot.getCurrentSlotSize() + 1;
                     slot.setCurrentSlotSize(newCurrentSize);
                     
-                    // Check if slot is now full
                     if (newCurrentSize >= slot.getMaxSlotSize()) {
                         slot.setIsFull(true);
                     }
                     
-                    // Save the updated slot
                     slotService.updateSlot(slot.getSlotId(), slot);
                     
                     System.out.println("Slot " + slot.getSlotId() + " count incremented to " + newCurrentSize);
@@ -65,10 +87,8 @@ public class OrderServiceImpl implements OrderService {
                 }
             } catch (SlotNotFoundException e) {
                 System.err.println("Slot not found with ID: " + orderobj.getSlot_id());
-                // Continue with order processing even if slot update fails
             } catch (Exception e) {
                 System.err.println("Error updating slot count: " + e.getMessage());
-                // Continue with order processing even if slot update fails
             }
         }
         
@@ -80,17 +100,64 @@ public class OrderServiceImpl implements OrderService {
         return orderRepo.findAll();
     }
 
-    @Override
+        @Override
+    @Transactional
     public String deleteOrderById(Integer id) {
-       Optional<Orders> order = orderRepo.findById(id);
+        Optional<Orders> order = orderRepo.findById(id);
         if (order.isPresent()) {
+            Orders tempOrder = order.get();
+            
+            if (tempOrder.getItems() != null && !tempOrder.getItems().isEmpty()) {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    List<Map<String, Object>> orderItems = objectMapper.readValue(
+                        tempOrder.getItems(), 
+                        new TypeReference<List<Map<String, Object>>>() {}
+                    );
+                    
+                    for (Map<String, Object> item : orderItems) {
+                        Integer productId = (Integer) item.get("productId");
+                        Integer quantity = (Integer) item.get("quantity");
+                        
+                        if (productId != null && quantity != null) {
+                            try {
+                                Products product = productService.getProductById(productId);
+                                product.setQuantity(product.getQuantity() + quantity);
+                                productService.updateProduct(product.getProductId(), product);
+                                
+                                System.out.println("Restored " + quantity + " units of product " + productId);
+                            } catch (Exception e) {
+                                System.err.println("Error updating product " + productId + ": " + e.getMessage());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error parsing order items: " + e.getMessage());
+                }
+            }
+            
+            if (tempOrder.getSlot_id() != null) {
+                try {
+                    Slot slot = slotService.getSlotById(tempOrder.getSlot_id());
+                    
+                    int newCurrentSize = slot.getCurrentSlotSize() - 1;
+                    slot.setCurrentSlotSize(newCurrentSize);
+                    
+                    if (newCurrentSize < slot.getMaxSlotSize()) {
+                        slot.setIsFull(false);
+                    }
+                    
+                    slotService.updateSlot(slot.getSlotId(), slot);
+                    
+                    System.out.println("Slot " + slot.getSlotId() + " count decremented to " + newCurrentSize);
+                } catch (SlotNotFoundException e) {
+                    System.err.println("Slot not found with ID: " + tempOrder.getSlot_id());
+                } catch (Exception e) {
+                    System.err.println("Error updating slot count: " + e.getMessage());
+                }
+            }
+            
             orderRepo.deleteById(id);
-          //edited by shivansh*******
-        	Orders tempOrder = order.get();
-            Products temp = slotService.getSlotById(tempOrder.getSlot_id()).getProduct();
-        	temp.setQuantity(temp.getQuantity()+1);
-		    ps.updateProduct(temp.getProductId(), temp);
-        	//*****
             return "Order Deleted Successfully";
         } else {
             throw new OrderNotFoundException("Order not found with ID: " + id);

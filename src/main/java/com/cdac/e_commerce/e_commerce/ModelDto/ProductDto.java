@@ -18,7 +18,7 @@ public class ProductDto {
     @Min(value = 1, message = "Category ID must be a positive integer")
     private Integer categoryId;
 
-    private String categoryName; // Added for frontend display
+    	private String categoryName;
 
     @NotBlank(message = "Product name is mandatory")
     @Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")
@@ -29,10 +29,10 @@ public class ProductDto {
     private Double price;
 
     @NotNull(message = "Quantity is mandatory")
-    @Min(value = 0, message = "Quantity cannot be negative") // Allow 0 for out-of-stock
+    	@Min(value = 0, message = "Quantity cannot be negative")
     private Integer quantity;
 
-    @Valid // This annotation will trigger validation on each ImageDto in the list
+    	@Valid
     private List<ImageDto> images;
 
     public ProductDto() {

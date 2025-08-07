@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/tricto/categories")
 public class CategoryController {
 
-    private final CategoryService categoryService; // Using final with constructor injection
+    	private final CategoryService categoryService;
 
     @Autowired
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
 
-    // Helper method to convert Entity to DTO
+    
     private CategoryDto convertToDto(Category category) {
         if (category == null) {
             return null;
@@ -35,7 +35,7 @@ public class CategoryController {
         return dto;
     }
 
-    // Helper method to convert DTO to Entity (for adding/updating)
+    
     private Category convertToEntity(CategoryDto categoryDto) {
         if (categoryDto == null) {
             return null;
@@ -56,15 +56,14 @@ public class CategoryController {
     public ResponseEntity<List<CategoryDto>> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         List<CategoryDto> categoryDtos = categories.stream()
-                .map(this::convertToDto) // Use method reference for conciseness
+                		.map(this::convertToDto)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(categoryDtos, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Integer id) {
-        // Service layer now throws CategoryNotFoundException if not found,
-        // which is handled by GlobalExceptionHandler.
+        
         Category category = categoryService.getCategoryById(id);
         return new ResponseEntity<>(convertToDto(category), HttpStatus.OK);
     }
@@ -79,22 +78,14 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<CategoryDto> updateCategory(@PathVariable Integer id, @RequestBody @Valid CategoryDto categoryDto) {
         Category categoryToUpdate = convertToEntity(categoryDto);
-        // Do NOT set ID on categoryToUpdate here. The service method takes the ID
-        // and finds the existing entity, then updates its properties.
-        // categoryToUpdate.setCategoryId(id); // <--- REMOVE THIS LINE IF YOUR SERVICE HANDLES FINDING BY ID
 
         Category result = categoryService.updateCategory(id, categoryToUpdate);
-        // If result is null, it means no entity was found/updated by the service.
-        // However, with the service throwing exceptions, 'result' will never be null
-        // if the entity is found. If the entity is not found, an exception is thrown
-        // and handled by GlobalExceptionHandler.
         return new ResponseEntity<>(convertToDto(result), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Integer id) {
-        // Service layer now throws CategoryNotFoundException if not found.
         categoryService.deleteCategory(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content for successful deletion
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

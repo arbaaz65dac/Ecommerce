@@ -1,7 +1,7 @@
 package com.cdac.e_commerce.e_commerce.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus; // For HttpStatus.CREATED
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,9 +24,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/tricto/auth")
 public class AuthController {
 
-    private final AuthService authService; // Use final with constructor injection
+    	private final AuthService authService;
 
-    @Autowired // Constructor injection is preferred
+	@Autowired
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -34,9 +34,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequest request) {
         authService.register(request.getName(), request.getEmail(), request.getPassword());
-        // If registration is successful, the service will return void,
-        // if user already exists, UserAlreadyExistsException will be thrown and caught by GlobalExceptionHandler.
-        return new ResponseEntity<>(HttpStatus.CREATED); // 201 Created with no content
+        	return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PostMapping("/login")

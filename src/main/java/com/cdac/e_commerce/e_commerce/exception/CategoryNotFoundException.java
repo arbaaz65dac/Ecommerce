@@ -3,7 +3,7 @@ package com.cdac.e_commerce.e_commerce.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.NOT_FOUND) // This makes Spring return a 404 Not Found when this exception is thrown
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class CategoryNotFoundException extends RuntimeException {
 
     /**

@@ -25,7 +25,7 @@ public class Transaction {
     @Column(name = "payment_status", nullable = false)
     private String paymentStatus;
 
-    // Constructors
+    
     public Transaction() {}
 
     public Transaction(LocalDateTime transactionDate, User user, BigDecimal amount, String paymentStatus) {
@@ -35,7 +35,7 @@ public class Transaction {
         this.paymentStatus = paymentStatus;
     }
 
-    // Getters & Setters
+    
     public Integer getId() {
         return id;
     }
