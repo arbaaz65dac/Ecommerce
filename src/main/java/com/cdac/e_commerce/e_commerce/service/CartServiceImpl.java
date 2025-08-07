@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import  com.cdac.e_commerce.e_commerce.model.Cart;
 import com.cdac.e_commerce.e_commerce.exception.CartNotFoundException;
 import  com.cdac.e_commerce.e_commerce.repository.CartRepository;
+import com.cdac.e_commerce.e_commerce.repository.ProductRepository;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -16,9 +17,14 @@ public class CartServiceImpl implements CartService {
 	@Autowired
 	CartRepository cartRepo;
 	
+	@Autowired
+	ProductRepository productRepo;
+	
 	@Override
 	public String addProduct(Cart cartobj) {
 		cartRepo.save(cartobj);
+		Integer tempPid = cartobj.getProductId();
+		
 		return "Product Added Successfully!";
 	}
 

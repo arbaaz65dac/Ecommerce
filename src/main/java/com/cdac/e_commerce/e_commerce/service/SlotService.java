@@ -122,4 +122,12 @@ public class SlotService {
         
         return slotRepository.saveAll(fullSlots);
     }
+  
+    //edited by shivansh
+    public Products getProductobj(Integer slotId) {
+        Slot slot = slotRepository.findById(slotId)
+            .orElseThrow(() -> new SlotNotFoundException("Slot with ID " + slotId + " not found."));
+        return slot.getProduct();
+    }
+
 }

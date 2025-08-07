@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cdac.e_commerce.e_commerce.model.Orders;
+import com.cdac.e_commerce.e_commerce.model.Products;
 import com.cdac.e_commerce.e_commerce.model.Slot;
 import com.cdac.e_commerce.e_commerce.exception.OrderNotFoundException;
 import com.cdac.e_commerce.e_commerce.exception.SlotNotFoundException;
@@ -21,6 +22,9 @@ public class OrderServiceImpl implements OrderService {
     private OrderRepository orderRepo;
     
     @Autowired
+    private ProductService ps;
+    
+    @Autowired
     private SlotService slotService;
 
     @Override
@@ -29,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
         // Save the order first
         orderRepo.save(orderobj);
         
+       
         // Increment slot count if slot_id is provided
         if (orderobj.getSlot_id() != null) {
             try {
@@ -37,6 +42,12 @@ public class OrderServiceImpl implements OrderService {
                 // Check if slot is not full
                 if (!slot.getIsFull()) {
                     // Increment current slot size by 1
+                	
+                	//edited by shivansh*******
+                	Products temp=	slot.getProduct();
+                	temp.setQuantity(temp.getQuantity()-1);
+                	//*****
+                	
                     int newCurrentSize = slot.getCurrentSlotSize() + 1;
                     slot.setCurrentSlotSize(newCurrentSize);
                     
@@ -71,9 +82,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String deleteOrderById(Integer id) {
-        Optional<Orders> order = orderRepo.findById(id);
+       Optional<Orders> order = orderRepo.findById(id);
         if (order.isPresent()) {
             orderRepo.deleteById(id);
+          //edited by shivansh*******
+        	Orders tempOrder = order.get();
+            Products temp = slotService.getSlotById(tempOrder.getSlot_id()).getProduct();
+        	temp.setQuantity(temp.getQuantity()+1);
+		    ps.updateProduct(temp.getProductId(), temp);
+        	//*****
             return "Order Deleted Successfully";
         } else {
             throw new OrderNotFoundException("Order not found with ID: " + id);
