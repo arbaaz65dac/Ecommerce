@@ -39,8 +39,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        // AuthService.login will return JWT on success or throw an exception (e.g., BadCredentialsException)
-        // that will be caught by the GlobalExceptionHandler if login fails.
         String jwt = authService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(new LoginResponse(jwt));
     }
@@ -60,9 +58,6 @@ public class AuthController {
     // to test token is working correctly
     @GetMapping("/me")
     public ResponseEntity<UserDetails> getCurrentUser(Authentication authentication) {
-        // Ensure authentication.getPrincipal() returns UserDetails directly
-        // In most Spring Security setups, authentication.getPrincipal() should already be an instance of UserDetails
-        // casting might be technically redundant if it's guaranteed, but harmless.
         return ResponseEntity.ok((UserDetails) authentication.getPrincipal());
     }
 }

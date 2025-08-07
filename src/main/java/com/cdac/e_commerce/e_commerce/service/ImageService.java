@@ -24,7 +24,7 @@ public class ImageService {
     }
 
     public List<ProductImage> createImagesForProduct(List<String> imageUrls, Products product) {
-        // For now, we'll create one image record with up to 3 URLs
+
         if (imageUrls == null || imageUrls.isEmpty()) {
             return List.of();
         }

@@ -29,7 +29,6 @@ public class ImageController {
         this.productService = productService;
     }
 
-    // Helper method to convert Entity to DTO using BeanUtils
     private ImageDto convertToDto(ProductImage image) {
         if (image == null) {
             return null;
@@ -45,16 +44,14 @@ public class ImageController {
 
     @PostMapping
     public ResponseEntity<ImageDto> addImage(@RequestBody @Valid ImageDto imageDto) {
-        // Validate that productId is provided
+       
         if (imageDto.getProductId() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         try {
-            // Get the product
             Products product = productService.getProductById(imageDto.getProductId());
-            
-            // Create image using the new method
+           
             ProductImage savedImage = imageService.createImage(
                 imageDto.getImg1(), 
                 imageDto.getImg2(), 
@@ -67,6 +64,5 @@ public class ImageController {
         }
     }
 
-    // Note: Other CRUD operations are not implemented in ImageService
-    // They can be added if needed for the admin panel
+
 }

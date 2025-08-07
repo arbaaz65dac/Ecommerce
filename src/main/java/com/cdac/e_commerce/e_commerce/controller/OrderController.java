@@ -52,13 +52,11 @@ public class OrderController {
 		orderobj.setUser_id(orderDTO.getUser_id());
 		orderobj.setSlot_id(orderDTO.getSlot_id());
 		
-		// Convert items to JSON string
 		if (orderDTO.getItems() != null && !orderDTO.getItems().isEmpty()) {
 			try {
 				String itemsJson = objectMapper.writeValueAsString(orderDTO.getItems());
 				orderobj.setItems(itemsJson);
 			} catch (JsonProcessingException e) {
-				// Handle JSON processing error
 				System.err.println("Error converting items to JSON: " + e.getMessage());
 			}
 		}
@@ -68,16 +66,13 @@ public class OrderController {
 	
 	@GetMapping("getAllOrder")
 	public List<OrderDto> getAllOrder(HttpServletRequest request){
-		// Get current user ID from request attributes (set by JWT filter)
 		Integer currentUserId = (Integer) request.getAttribute("userId");
 		String userRole = (String) request.getAttribute("userRole");
 		
 		if (currentUserId == null) {
-			// Fallback: try to get from authentication context
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (authentication != null && authentication.isAuthenticated()) {
 				try {
-					// Extract user ID from JWT token
 					String authHeader = request.getHeader("Authorization");
 					if (authHeader != null && authHeader.startsWith("Bearer ")) {
 						String token = authHeader.substring(7);
@@ -90,24 +85,20 @@ public class OrderController {
 		}
 		
 		try {
-			// Get all orders
 			List<Orders> allOrders = orderservice.getAllOrder();
 			
-			// If user is admin, return all orders
 			if ("ADMIN".equals(userRole)) {
 				return allOrders.stream().map(order -> {
 					OrderDto dto = new OrderDto();
 					dto.setUser_id(order.getUser_id());
 					dto.setSlot_id(order.getSlot_id());
 					
-					// Convert JSON string back to items
 					if (order.getItems() != null && !order.getItems().isEmpty()) {
 						try {
 							List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
 								objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
 							dto.setItems(items);
 						} catch (JsonProcessingException e) {
-							// Handle JSON processing error
 							System.err.println("Error converting JSON to items: " + e.getMessage());
 						}
 					}
@@ -115,17 +106,12 @@ public class OrderController {
 					return dto;
 				}).collect(Collectors.toList());
 			}
-			
-			// For regular users, filter by current user
 			if (currentUserId == null) {
-				// Return empty list if no user ID found
 				return List.of();
 			}
 			
-			// Create a final variable for use in lambda
 			final Integer finalUserId = currentUserId;
 			
-			// Filter orders by current user
 			List<Orders> userOrders = allOrders.stream()
 				.filter(order -> order.getUser_id().equals(finalUserId))
 				.collect(Collectors.toList());
@@ -135,14 +121,12 @@ public class OrderController {
 				dto.setUser_id(order.getUser_id());
 				dto.setSlot_id(order.getSlot_id());
 				
-				// Convert JSON string back to items
 				if (order.getItems() != null && !order.getItems().isEmpty()) {
 					try {
 						List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
 							objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
 						dto.setItems(items);
 					} catch (JsonProcessingException e) {
-						// Handle JSON processing error
 						System.err.println("Error converting JSON to items: " + e.getMessage());
 					}
 				}
@@ -155,11 +139,9 @@ public class OrderController {
 		}
 	}
 	
-	// New endpoint specifically for admin to get all orders
 	@GetMapping("getAllOrdersForAdmin")
 	public List<OrderDto> getAllOrdersForAdmin(HttpServletRequest request){
 		try {
-			// Get all orders without filtering
 			List<Orders> allOrders = orderservice.getAllOrder();
 			
 			return allOrders.stream().map(order -> {
@@ -167,10 +149,8 @@ public class OrderController {
 				dto.setOrderId(order.getId());
 				dto.setUser_id(order.getUser_id());
 				dto.setSlot_id(order.getSlot_id());
-				dto.setStatus("Pending"); // Default status since Orders model doesn't have status field
-				dto.setOrderDate(new java.util.Date()); // Default to current date since Orders model doesn't have orderDate field
-				
-				// Fetch user information
+				dto.setStatus("Pending"); 
+				dto.setOrderDate(new java.util.Date()); 
 				try {
 					User user = userRepository.findById(order.getUser_id()).orElse(null);
 					if (user != null) {
@@ -185,20 +165,17 @@ public class OrderController {
 					System.err.println("Error fetching user for order " + order.getId() + ": " + e.getMessage());
 				}
 				
-				// Convert JSON string back to items
 				if (order.getItems() != null && !order.getItems().isEmpty()) {
 					try {
 						List<OrderItemDto> items = objectMapper.readValue(order.getItems(), 
 							objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
 						dto.setItems(items);
 						
-						// Calculate total amount from items
 						double totalAmount = items.stream()
 							.mapToDouble(item -> (item.getPrice() != null ? item.getPrice() : 0) * (item.getQuantity() != null ? item.getQuantity() : 0))
 							.sum();
 						dto.setTotalAmount(totalAmount);
 					} catch (JsonProcessingException e) {
-						// Handle JSON processing error
 						System.err.println("Error converting JSON to items: " + e.getMessage());
 					}
 				}
@@ -230,7 +207,6 @@ public class OrderController {
 					objectMapper.getTypeFactory().constructCollectionType(List.class, OrderItemDto.class));
 				dto.setItems(items);
 			} catch (JsonProcessingException e) {
-				// Handle JSON processing error
 				System.err.println("Error converting JSON to items: " + e.getMessage());
 			}
 		}

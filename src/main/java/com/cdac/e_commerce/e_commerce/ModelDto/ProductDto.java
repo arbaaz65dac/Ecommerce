@@ -49,7 +49,6 @@ public class ProductDto {
         this.images = images != null ? images : new ArrayList<>();
     }
 
-    // Getters and Setters 
     public Integer getProductId() {
         return productId;
     }

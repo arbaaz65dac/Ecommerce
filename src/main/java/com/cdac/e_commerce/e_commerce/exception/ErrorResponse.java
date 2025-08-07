@@ -1,8 +1,8 @@
-package com.cdac.e_commerce.e_commerce.exception; // Or common DTOs package
+package com.cdac.e_commerce.e_commerce.exception; 
 
 import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
-import com.fasterxml.jackson.annotation.JsonFormat; // Optional, for consistent date format
+import com.fasterxml.jackson.annotation.JsonFormat; 
 
 public class ErrorResponse {
 
@@ -13,8 +13,7 @@ public class ErrorResponse {
     private String message;
     private String path; // The request URI
 
-    // For validation errors, you might want to add a field like:
-    // private Map<String, String> fieldErrors;
+    
 
     public ErrorResponse(HttpStatus status, String message, String path) {
         this.timestamp = LocalDateTime.now();
@@ -45,7 +44,6 @@ public class ErrorResponse {
         return path;
     }
 
-    // Setters (optional, often kept immutable for error responses, but sometimes useful for builders)
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
