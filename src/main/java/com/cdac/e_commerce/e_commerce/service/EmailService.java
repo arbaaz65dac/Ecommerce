@@ -10,6 +10,11 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+    
+   /* String str = """
+    		
+    		""";
+    		*/
 
     public void sendPasswordResetEmail(String to, String resetToken) {
         SimpleMailMessage message = new SimpleMailMessage();

@@ -95,14 +95,14 @@ public class AuthService {
         // Don't reveal if email exists or not for security reasons
     }
 
+    
     public void resetPassword(String resetToken, String newPassword) {
-        Optional<User> userOptional = userRepository.findByResetToken(resetToken);
-        
-        if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid reset token");
-        }
-        
-        User user = userOptional.get();
+        var user =userRepository.findByResetToken(resetToken).orElseThrow(()->new IllegalArgumentException("Invalid reset token"));
+//        if (userOptional.isEmpty()) {
+//            throw new IllegalArgumentException("Invalid reset token");
+//        }
+//        
+//        User user = userOptional.get();
         
         // Check if token is expired
         if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
